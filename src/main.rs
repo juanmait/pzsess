@@ -13,9 +13,15 @@ const PZLOAD_SESSIONS_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/BSa
 
 fn get_dirs_iter() -> impl Iterator<Item = std::fs::DirEntry> {
     std::fs::read_dir(PZLOAD_SESSIONS_FOLDER)
-        .unwrap()
-        .map(|r| r.unwrap())
-        .filter(|d| d.metadata().unwrap().is_dir())
+        .expect("Error trying to read_dir sessions folder.")
+        .map(|r| r.expect("Error unwrapping DirEntry while iterating over sessions folder."))
+        .filter(|d| {
+            d.metadata()
+                .expect(
+                    "Error unwrapping metadata of DirEntry while iterating over sessions folder.",
+                )
+                .is_dir()
+        })
 }
 
 /// Map from [std::fs::DirEntry] to [std::path::PathBuf]
