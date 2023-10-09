@@ -1,39 +1,92 @@
-use std::{env, fs, path::PathBuf, time};
+//! TODOS:
+//! -   imprimir mensaje el final que diga la cantidad de "saves" encontrados
+//! -   permitir obtener una partida especificando números como `0`, `-1`
+
+use std::{fs, path};
 
 const SAVED_GAMES_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/Saves");
+const SAVES_TMP: &'static str = concat!(env!("HOME"), "/Zomboid/Saves_tmp");
 const BACKUP_GAMES_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/BSaves");
 
-fn now() -> String {
-    time::SystemTime::now()
-        .duration_since(time::UNIX_EPOCH)
+fn get_dirs_iter() -> impl Iterator<Item = std::fs::DirEntry> {
+    std::fs::read_dir(BACKUP_GAMES_FOLDER)
         .unwrap()
-        .as_millis()
-        .to_string()
+        .map(|r| r.unwrap())
+        .filter(|d| d.metadata().unwrap().is_dir())
+}
+
+/// Map from [std::fs::DirEntry] to [std::path::PathBuf]
+fn into_paths_iter(
+    iter: impl Iterator<Item = std::fs::DirEntry>,
+) -> impl Iterator<Item = std::path::PathBuf> {
+    iter.map(|e| e.path())
+}
+
+fn into_u128_timestamp(
+    iter: impl Iterator<Item = std::path::PathBuf>,
+) -> impl Iterator<Item = u128> {
+    iter.map(|e| {
+        e.file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .parse::<u128>()
+            .unwrap()
+    })
+}
+
+fn iter_to_vec(iter: impl Iterator<Item = u128>) -> Vec<u128> {
+    iter.collect()
+}
+
+fn get_sorted_list() -> Vec<u128> {
+    let dir_iter = get_dirs_iter();
+    let path_iter = into_paths_iter(dir_iter);
+    let times_iter = into_u128_timestamp(path_iter);
+    let mut vec = iter_to_vec(times_iter);
+    vec.sort();
+    vec
+}
+
+fn get_newest_timestamp() -> u128 {
+    get_sorted_list().pop().unwrap()
+}
+
+fn get_newest_path() -> std::path::PathBuf {
+    let tm = get_newest_timestamp();
+    let path_string = format!("{}/{}", BACKUP_GAMES_FOLDER.to_owned(), tm);
+    std::path::Path::new(&path_string).to_owned()
 }
 
 fn main() {
-    let timestamp = now();
-    println!("Writing backup to: /{timestamp}/ ...");
-    let rdr = pzsave::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
-
-    for direntry_result in rdr {
-        let from_path = direntry_result.unwrap().path();
-        let from_str = from_path.to_str().unwrap();
-        let to_part_str = &from_str[SAVED_GAMES_FOLDER.len()..];
-        let to_part_path: PathBuf = to_part_str.into();
-
-        let to_dir_path = to_part_path.parent().unwrap();
-        let to_dir_str = to_dir_path.to_str().unwrap();
-        let file_name = to_part_path.file_name().unwrap().to_str().unwrap();
-
-        let to_dir_all = [&BACKUP_GAMES_FOLDER[..], "/", &timestamp[..], to_dir_str];
-
-        let to_dir_all_string = to_dir_all.concat();
-        let final_dest = [to_dir_all_string.as_str(), file_name].join("/");
-
-        fs::create_dir_all(&to_dir_all_string).unwrap();
-        fs::copy(from_path, final_dest).unwrap();
+    if std::path::Path::new(SAVES_TMP).is_dir() {
+        std::fs::remove_dir_all(SAVES_TMP).unwrap();
     }
 
-    println!("Backup created!");
+    fs::rename(SAVED_GAMES_FOLDER, SAVES_TMP).unwrap();
+
+    for (absolute_from, absolute_to) in pzload::rdr::read_dir_recursive(get_newest_path())
+        .unwrap()
+        .map(|r| r.unwrap())
+        .map(|e| e.path())
+        .map(|absolute_from| {
+            let relative_dest = absolute_from
+                .strip_prefix(BACKUP_GAMES_FOLDER)
+                .unwrap()
+                .components()
+                .skip(1)
+                .collect::<path::PathBuf>();
+            (absolute_from, relative_dest)
+        })
+        .map(|(absolute_from, relative_dest)| {
+            let absolute_to = std::path::Path::new(SAVED_GAMES_FOLDER).join(relative_dest);
+            (absolute_from, absolute_to)
+        })
+    {
+        let dir = absolute_to.parent().unwrap();
+        fs::create_dir_all(dir).unwrap();
+        fs::copy(absolute_from, absolute_to).unwrap();
+    }
+
+    println!("Done.");
 }
