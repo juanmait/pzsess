@@ -3,5 +3,13 @@
 version = 3
 
 [[package]]
+name = "pzlib"
+version = "0.1.0"
+
+[[package]]
+name = "pzload"
+version = "0.1.0"
+
+[[package]]
 name = "pzsave"
 version = "0.1.0"
