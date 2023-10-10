@@ -1,4 +1,3 @@
-# Project Zomboid session saver and loaded
+# Project Zomboid session backup/recover utilities
 
-This repo contains some utilities to save and load Project Zomboid (the game) sessions/saves.
-
+This repo contains some utilities to backup and then recover PZ sessions.
