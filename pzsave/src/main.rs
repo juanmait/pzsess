@@ -13,7 +13,7 @@ fn generate_timestamp_string() -> String {
 
 fn main() {
     let timestamp = generate_timestamp_string();
-    println!("Writing backup to: /{timestamp}/ ...");
+    println!("Saving PZ session into /{timestamp}/ ...");
     let rdr = pzlib::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
 
     for direntry_result in rdr {
@@ -35,5 +35,5 @@ fn main() {
         fs::copy(from_path, final_dest).unwrap();
     }
 
-    println!("Backup created!");
+    println!("PZ session saved");
 }
