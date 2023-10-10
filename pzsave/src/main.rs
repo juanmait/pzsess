@@ -1,3 +1,6 @@
+//! ## TODOS
+//! -   `pzsave --override-last/-o` command to override the last session saved (delete last one and create a new one).
+//!
 use std::{env, fs, path::PathBuf, time};
 
 const SAVED_GAMES_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/Saves");
@@ -14,7 +17,8 @@ fn generate_timestamp_string() -> String {
 fn main() {
     let timestamp = generate_timestamp_string();
     println!("Saving PZ session into /{timestamp}/ ...");
-    let rdr = pzlib::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
+    let rdr = pzlib::rdr::read_dir_recursive(SAVED_GAMES_FOLDER)
+        .expect("Error: Unable to read from the official saves folder.");
 
     for direntry_result in rdr {
         let from_path = direntry_result.unwrap().path();

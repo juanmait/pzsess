@@ -1,6 +1,6 @@
 //! TODOS:
-//! -   imprimir mensaje el final que diga la cantidad de "saves" encontrados
-//! -   permitir obtener una partida especificando números como `0`, `-1`
+//! -   print message at the end about how many "saves" they are
+//! -   `pzload -n -2` command to choose to load older saves (other than the last one) with numbers like `0`, `-1`
 
 use std::{fs, path};
 
@@ -105,8 +105,8 @@ fn get_n_timestamp(n: i32) -> u128 {
     *timestamp
 }
 
-fn get_newest_path() -> std::path::PathBuf {
-    let tm = get_n_timestamp(-1);
+fn get_session_path(n: i32) -> std::path::PathBuf {
+    let tm = get_n_timestamp(n);
     let path_string = format!("{}/{}", PZLOAD_SESSIONS_FOLDER.to_owned(), tm);
     std::path::Path::new(&path_string).to_owned()
 }
@@ -125,7 +125,7 @@ fn main() {
         fs::rename(OFFICIAL_SESSIONS_FOLDER, TEMP_SESS_BACKUP_FOLDER).unwrap();
     }
 
-    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(get_newest_path())
+    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(get_session_path(-1))
         .unwrap()
         .map(|r| r.unwrap())
         .map(|e| e.path())
@@ -144,6 +144,7 @@ fn main() {
         })
     {
         let dir = absolute_to.parent().unwrap();
+        // ensure that the destination directory for this path exists
         fs::create_dir_all(dir).unwrap();
         fs::copy(absolute_from, absolute_to).unwrap();
     }
