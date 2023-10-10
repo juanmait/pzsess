@@ -7,4 +7,4 @@ CLI utility to backup the current PZ session.
 ❯ pzsave
 ```
 
-Use [pzload](../pzload/) to recover it (the current PZ session will be replaced by).
+Use [pzload](../pzload/) to recover it.
