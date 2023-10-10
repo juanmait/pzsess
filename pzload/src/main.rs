@@ -125,7 +125,7 @@ fn main() {
         fs::rename(OFFICIAL_SESSIONS_FOLDER, TEMP_SESS_BACKUP_FOLDER).unwrap();
     }
 
-    for (absolute_from, absolute_to) in pzload::rdr::read_dir_recursive(get_newest_path())
+    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(get_newest_path())
         .unwrap()
         .map(|r| r.unwrap())
         .map(|e| e.path())

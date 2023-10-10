@@ -14,7 +14,7 @@ fn generate_timestamp_string() -> String {
 fn main() {
     let timestamp = generate_timestamp_string();
     println!("Writing backup to: /{timestamp}/ ...");
-    let rdr = pzsave::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
+    let rdr = pzlib::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
 
     for direntry_result in rdr {
         let from_path = direntry_result.unwrap().path();
