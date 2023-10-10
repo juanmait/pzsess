@@ -3,7 +3,7 @@ use std::{env, fs, path::PathBuf, time};
 const SAVED_GAMES_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/Saves");
 const BACKUP_GAMES_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/BSaves");
 
-fn now() -> String {
+fn generate_timestamp_string() -> String {
     time::SystemTime::now()
         .duration_since(time::UNIX_EPOCH)
         .unwrap()
@@ -12,7 +12,7 @@ fn now() -> String {
 }
 
 fn main() {
-    let timestamp = now();
+    let timestamp = generate_timestamp_string();
     println!("Writing backup to: /{timestamp}/ ...");
     let rdr = pzsave::rdr::read_dir_recursive(SAVED_GAMES_FOLDER).unwrap();
 

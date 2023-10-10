@@ -54,7 +54,7 @@ pub mod rdr {
 
     // Implement Iterator for ReadDirRecursive
     impl Iterator for ReadDirRecursive {
-        // our Item is the same as the wrapped iter
+        // our Item is the same as the inner iterator's item
         type Item = io::Result<fs::DirEntry>;
 
         fn next(&mut self) -> Option<Self::Item> {
