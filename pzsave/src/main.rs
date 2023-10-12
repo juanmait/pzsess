@@ -1,5 +1,9 @@
-//! ## TODOS
-//! -   `pzsave --override-last/-o` command to override the last session saved (delete last one and create a new one).
+//! pzsave
+//! ======
+//!
+//! TODO
+//! -----
+//! -   `pzsave -o` `--override-last` command to override the last saved session (delete last one and create a new one).
 //!
 use std::{env, fs, path::PathBuf, time};
 
@@ -39,5 +43,5 @@ fn main() {
         fs::copy(from_path, final_dest).unwrap();
     }
 
-    println!("PZ session saved");
+    println!("PZ session saved.");
 }

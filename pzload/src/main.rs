@@ -1,6 +1,13 @@
-//! TODOS:
-//! -   print message at the end about how many "saves" they are
-//! -   `pzload -n -2` command to choose to load older saves (other than the last one) with numbers like `0`, `-1`
+//! pzload
+//! ======
+//!
+//! TODO
+//! ----
+//!
+//! -   `pzload -n=-2` to choose loading older saves (not just the last one) with numbers like `0`, `-1`
+//! -   `pzload -n=-2` to choose loading older saves (not just the last one) with numbers like `0`, `-1`
+//!
+//! -   Print message at the end about how many "saves" there are.
 
 use std::{fs, path};
 
@@ -10,6 +17,53 @@ const OFFICIAL_SESSIONS_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/S
 const TEMP_SESS_BACKUP_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/Saves_tmp");
 /// The path to the folder from which pzload will look for previously saved sessions.
 const PZLOAD_SESSIONS_FOLDER: &'static str = concat!(env!("HOME"), "/Zomboid/BSaves");
+
+// ONLY LAST SESSION IS SUPPORTED
+const N_SESS: i32 = -1;
+
+fn main() {
+    // Remove any previous temporary session.
+    // We check for existence first to prevent [std::fs::remove_dir_all]
+    // to fail if it doesn't...
+    if std::path::Path::new(TEMP_SESS_BACKUP_FOLDER).is_dir() {
+        println!("Removing previous temporary backup..");
+        std::fs::remove_dir_all(TEMP_SESS_BACKUP_FOLDER).unwrap();
+    }
+
+    // Before proceeding to restore previous sessions we first backup the
+    // current one in case something goes wrong with the restoration.
+    if std::path::Path::new(OFFICIAL_SESSIONS_FOLDER).is_dir() {
+        println!("Creating backup of the current session ..");
+        fs::rename(OFFICIAL_SESSIONS_FOLDER, TEMP_SESS_BACKUP_FOLDER).unwrap();
+    }
+
+    println!("Recovering last saved session ..");
+    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(get_session_path(N_SESS))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .map(|e| e.path())
+        .map(|absolute_from| {
+            let relative_dest = absolute_from
+                .strip_prefix(PZLOAD_SESSIONS_FOLDER)
+                .unwrap()
+                .components()
+                .skip(1)
+                .collect::<path::PathBuf>();
+            (absolute_from, relative_dest)
+        })
+        .map(|(absolute_from, relative_dest)| {
+            let absolute_to = std::path::Path::new(OFFICIAL_SESSIONS_FOLDER).join(relative_dest);
+            (absolute_from, absolute_to)
+        })
+    {
+        let dir = absolute_to.parent().unwrap();
+        // ensure that the destination directory for this path exists
+        fs::create_dir_all(dir).unwrap();
+        fs::copy(absolute_from, absolute_to).unwrap();
+    }
+
+    println!("Done.");
+}
 
 /// Build an [Iterator] over the directories (excluding files) inside the sessions folder.
 fn get_dirs_iter() -> impl Iterator<Item = std::fs::DirEntry> {
@@ -100,7 +154,10 @@ fn get_n_timestamp(n: i32) -> u128 {
         .as_str()
     );
     println!(
-        "\nRecovering save with timestamp {timestamp} at position {index} of a total of {list_len} entries)\n\n",
+        "\nRecovering session {} with timestamp {}. Total Sessions: {}.\n\n",
+        index + 1,
+        timestamp,
+        list_len
     );
     *timestamp
 }
@@ -109,45 +166,4 @@ fn get_session_path(n: i32) -> std::path::PathBuf {
     let tm = get_n_timestamp(n);
     let path_string = format!("{}/{}", PZLOAD_SESSIONS_FOLDER.to_owned(), tm);
     std::path::Path::new(&path_string).to_owned()
-}
-
-fn main() {
-    // Remove any previous temporary session.
-    // We check for existence first to prevent [std::fs::remove_dir_all]
-    // to fail if it doesn't...
-    if std::path::Path::new(TEMP_SESS_BACKUP_FOLDER).is_dir() {
-        std::fs::remove_dir_all(TEMP_SESS_BACKUP_FOLDER).unwrap();
-    }
-
-    // Before proceeding to restore previous sessions we first backup the
-    // current one in case something goes wrong with the restoration.
-    if std::path::Path::new(OFFICIAL_SESSIONS_FOLDER).is_dir() {
-        fs::rename(OFFICIAL_SESSIONS_FOLDER, TEMP_SESS_BACKUP_FOLDER).unwrap();
-    }
-
-    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(get_session_path(-1))
-        .unwrap()
-        .map(|r| r.unwrap())
-        .map(|e| e.path())
-        .map(|absolute_from| {
-            let relative_dest = absolute_from
-                .strip_prefix(PZLOAD_SESSIONS_FOLDER)
-                .unwrap()
-                .components()
-                .skip(1)
-                .collect::<path::PathBuf>();
-            (absolute_from, relative_dest)
-        })
-        .map(|(absolute_from, relative_dest)| {
-            let absolute_to = std::path::Path::new(OFFICIAL_SESSIONS_FOLDER).join(relative_dest);
-            (absolute_from, absolute_to)
-        })
-    {
-        let dir = absolute_to.parent().unwrap();
-        // ensure that the destination directory for this path exists
-        fs::create_dir_all(dir).unwrap();
-        fs::copy(absolute_from, absolute_to).unwrap();
-    }
-
-    println!("Done.");
 }
