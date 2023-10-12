@@ -7,6 +7,10 @@ CLI utility to load PZ sessions previously saved with [pzsave](../pzsave/).
 ```bash
 # recover the last saved session
 ❯ pzload
-```
 
-Currently only the last session can be recovered (support for older sessions will be added).
+# recover the second to last session
+❯ pzload -n=-2
+
+# print help
+❯ pzload --help
+```
