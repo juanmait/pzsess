@@ -1,10 +1,10 @@
 # pzsave
 
-CLI utility to backup the current PZ session.
+CLI utility to backup all current PZ sessions.
 
 ```bash
-# save the current PZ session
+# save all current PZ sessions
 ❯ pzsave
 ```
 
-Use [pzload](../pzload/) to recover it.
+Use [pzload](../pzload/) to recover them.

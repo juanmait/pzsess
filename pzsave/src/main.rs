@@ -1,10 +1,5 @@
 //! pzsave
 //! ======
-//!
-//! TODO
-//! -----
-//! -   `pzsave -o` `--override-last` command to override the last saved session (delete last one and create a new one).
-//!
 
 fn generate_timestamp_string() -> String {
     std::time::SystemTime::now()

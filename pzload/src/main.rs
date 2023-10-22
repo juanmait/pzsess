@@ -1,10 +1,5 @@
 //! pzload
 //! ======
-//!
-//! TODO
-//! ----
-//!
-//! -   Print message at the end about how many "saves" there are.
 
 use clap::Parser;
 
