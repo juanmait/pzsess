@@ -1,6 +1,6 @@
 # pzload
 
-CLI utility to load PZ sessions previously saved with [pzsave](../pzsave/).
+CLI utility to load PZ sessions previously saved with [pzbackup](../pzbackup/).
 
 **WARNING**: The current PZ session will be overridden/replaced by the loaded session.
 

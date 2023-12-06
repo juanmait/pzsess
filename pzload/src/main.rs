@@ -1,4 +1,4 @@
-//! Load project zomboid sessions previously saved by [pzsave](../pzsave/index.html)
+//! Load project zomboid sessions previously saved by [pzbackup](../pzbackup/index.html)
 
 use clap::Parser;
 

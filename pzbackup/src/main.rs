@@ -1,9 +1,10 @@
-//! It should be called _pzbackup_ for what it really does.
-//! It essentially creates recoverable backups of the entire saves folder.
-//! Subsequent runs of pzsave won't override previous saves.
+//! It creates recoverable backups of the entire saves folder.
+//! Subsequent runs of `pzbackup` won't override previous saves.
 //!
 //! Previous backups can be recovered using the [pzload](../pzload/index.html) crate.
-//!
+
+/// Creates a string representation of a timestamp
+/// in milliseconds since unix EPOCH. See [std::time::UNIX_EPOCH].
 fn generate_timestamp_string() -> String {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -14,9 +15,9 @@ fn generate_timestamp_string() -> String {
 
 fn main() {
     let timestamp = generate_timestamp_string();
-    println!("pzsave: saving session into /{timestamp}/ ...");
+    println!("pzbackup: saving session into /{timestamp}/ ...");
     let rdr = pzlib::rdr::read_dir_recursive(pzlib::constants::OFFICIAL_SESSIONS_FOLDER)
-        .expect("pzsave: Error: Unable to read from the official saves folder.");
+        .expect("pzbackup: Error: Unable to read from the official saves folder.");
 
     for direntry_result in rdr {
         let absolute_src_path = direntry_result.unwrap().path();
@@ -43,5 +44,5 @@ fn main() {
         std::fs::copy(absolute_src_path, absolute_dest).unwrap();
     }
 
-    println!("pzsave: finished ok");
+    println!("pzbackup: finished ok");
 }

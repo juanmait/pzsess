@@ -2,7 +2,7 @@
 
 This repo contains some CLI utilities to backup and then recover PZ sessions.
 
--   [pzsave](./pzsave): save current session.
+-   [pzbackup](./pzbackup): save current session.
 -   [pzload](./pzload): load previously saved session.
 
 ## Generate and open RustDocs for the workspace

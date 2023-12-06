@@ -117,6 +117,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pzbackup"
+version = "0.1.0"
+dependencies = [
+ "pzlib",
+]
+
+[[package]]
 name = "pzlib"
 version = "0.1.0"
 dependencies = [
@@ -128,13 +135,6 @@ name = "pzload"
 version = "0.1.0"
 dependencies = [
  "clap",
- "pzlib",
-]
-
-[[package]]
-name = "pzsave"
-version = "0.1.0"
-dependencies = [
  "pzlib",
 ]
 
