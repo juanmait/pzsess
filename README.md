@@ -8,7 +8,7 @@ This repo contains some CLI utilities to backup and then recover PZ sessions.
 ## Generate and open RustDocs for the workspace
 
 ```bash
-rm -rf ./target/doc && cargo doc --no-deps --open
+cargo doc --no-deps --open
 ```
 
 ## Build all the binaries
