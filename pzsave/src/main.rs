@@ -1,6 +1,9 @@
-//! pzsave
-//! ======
-
+//! It should be called _pzbackup_ for what it really does.
+//! It essentially creates recoverable backups of the entire saves folder.
+//! Subsequent runs of pzsave won't override previous saves.
+//!
+//! Previous backups can be recovered using the [pzload](../pzload/index.html) crate.
+//!
 fn generate_timestamp_string() -> String {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -11,33 +14,34 @@ fn generate_timestamp_string() -> String {
 
 fn main() {
     let timestamp = generate_timestamp_string();
-    println!("Saving PZ session into /{timestamp}/ ...");
+    println!("pzsave: saving session into /{timestamp}/ ...");
     let rdr = pzlib::rdr::read_dir_recursive(pzlib::constants::OFFICIAL_SESSIONS_FOLDER)
-        .expect("Error: Unable to read from the official saves folder.");
+        .expect("pzsave: Error: Unable to read from the official saves folder.");
 
     for direntry_result in rdr {
-        let from_path = direntry_result.unwrap().path();
-        let from_str = from_path.to_str().unwrap();
-        let to_part_str = &from_str[pzlib::constants::OFFICIAL_SESSIONS_FOLDER.len()..];
-        let to_part_path: std::path::PathBuf = to_part_str.into();
+        let absolute_src_path = direntry_result.unwrap().path();
+        let absolute_src_str = absolute_src_path.to_str().unwrap();
+        let relative_src_str =
+            &absolute_src_str[pzlib::constants::OFFICIAL_SESSIONS_FOLDER.len()..];
+        let relative_src_path: std::path::PathBuf = relative_src_str.into();
 
-        let to_dir_path = to_part_path.parent().unwrap();
-        let to_dir_str = to_dir_path.to_str().unwrap();
-        let file_name = to_part_path.file_name().unwrap().to_str().unwrap();
+        let relative_src_dir_path = relative_src_path.parent().unwrap();
+        let relative_src_dir_str = relative_src_dir_path.to_str().unwrap();
+        let relative_src_file_name = relative_src_path.file_name().unwrap().to_str().unwrap();
 
         let to_dir_all = [
-            &pzlib::constants::PZLOAD_SESSIONS_FOLDER[..],
+            pzlib::constants::PZLOAD_SESSIONS_FOLDER,
             "/",
-            &timestamp[..],
-            to_dir_str,
+            timestamp.as_str(),
+            relative_src_dir_str,
         ];
 
         let to_dir_all_string = to_dir_all.concat();
-        let final_dest = [to_dir_all_string.as_str(), file_name].join("/");
+        let absolute_dest = [to_dir_all_string.as_str(), relative_src_file_name].join("/");
 
         std::fs::create_dir_all(&to_dir_all_string).unwrap();
-        std::fs::copy(from_path, final_dest).unwrap();
+        std::fs::copy(absolute_src_path, absolute_dest).unwrap();
     }
 
-    println!("PZ session saved.");
+    println!("pzsave: finished ok");
 }

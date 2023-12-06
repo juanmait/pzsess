@@ -1,12 +1,15 @@
-//! pzload
-//! ======
+//! Load project zomboid sessions previously saved by [pzsave](../pzsave/index.html)
 
 use clap::Parser;
 
 mod util;
 
+/// Arguments supported by the `pzload` CLI
 #[derive(Parser, Debug)]
 struct Args {
+    /// Session number to load. Negative values are allowed so for example one
+    /// can obtain the id of the last save using `-n=-1` or the second to
+    /// last id with `-n=-2`.
     #[arg(short, default_value_t = -1)]
     n: i32,
 }
@@ -14,18 +17,20 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    println!("pzload: loading session {}", args.n);
+
     // Remove any previous temporary session.
-    // We check for existence first to prevent [std::fs::remove_dir_all]
-    // to fail if it doesn't...
+    // Panic if the operation fails for any reason other than
+    // directory not found
+    println!("pzload: removing previous temporary backup..");
     if std::path::Path::new(pzlib::constants::TEMP_SESS_BACKUP_FOLDER).is_dir() {
-        println!("Removing previous temporary backup..");
         std::fs::remove_dir_all(pzlib::constants::TEMP_SESS_BACKUP_FOLDER).unwrap();
     }
 
     // Before proceeding to restore previous sessions we first backup the
     // current one in case something goes wrong with the restoration.
+    println!("pzload: creating new temporary backup..");
     if std::path::Path::new(pzlib::constants::OFFICIAL_SESSIONS_FOLDER).is_dir() {
-        println!("Creating backup of the current session ..");
         std::fs::rename(
             pzlib::constants::OFFICIAL_SESSIONS_FOLDER,
             pzlib::constants::TEMP_SESS_BACKUP_FOLDER,
@@ -33,8 +38,8 @@ fn main() {
         .unwrap();
     }
 
-    println!("Recovering last saved session ..");
-    for (absolute_from, absolute_to) in pzlib::rdr::read_dir_recursive(util::get_session_path(
+    println!("pzload: recovering session {}", args.n);
+    for (absolute_src, absolute_dest) in pzlib::rdr::read_dir_recursive(util::get_session_path(
         args.n,
         pzlib::constants::PZLOAD_SESSIONS_FOLDER,
     ))
@@ -55,11 +60,11 @@ fn main() {
             std::path::Path::new(pzlib::constants::OFFICIAL_SESSIONS_FOLDER).join(relative_dest);
         (absolute_from, absolute_to)
     }) {
-        let dir = absolute_to.parent().unwrap();
+        let dir = absolute_dest.parent().unwrap();
         // ensure that the destination directory for this path exists
         std::fs::create_dir_all(dir).unwrap();
-        std::fs::copy(absolute_from, absolute_to).unwrap();
+        std::fs::copy(absolute_src, absolute_dest).unwrap();
     }
 
-    println!("Done.");
+    println!("pzload: finished ok.");
 }

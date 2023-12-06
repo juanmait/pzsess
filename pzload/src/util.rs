@@ -80,7 +80,9 @@ fn get_n_timestamp_index(n: i32, list_len: usize) -> usize {
     n_absolute
 }
 
-/// Get the id (timestamp) of a save using the given `n` number.
+/// Get the id of a save (timestamp) that correspond to the given `n`
+/// session number.
+/// 
 /// This is mainly to support negative values for `n` so for example one
 /// can obtain the id of the last save using `n = -1` or the second to
 /// last id with `n = -2`.
@@ -98,7 +100,7 @@ where
         .as_str()
     );
     println!(
-        "\nRecovering session {} with timestamp {}. Total Sessions: {}.\n\n",
+        "Recovering session {} with timestamp {} (total sessions {}).",
         index + 1,
         timestamp,
         list_len

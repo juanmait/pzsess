@@ -103,6 +103,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
+name = "itfs"
+version = "0.2.0"
+source = "git+https://github.com/juanmait/read-dir-recursive-rs#2ca870e6ecccc34a5d5e901a1fec2f76549fd3e6"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -114,6 +119,9 @@ dependencies = [
 [[package]]
 name = "pzlib"
 version = "0.1.0"
+dependencies = [
+ "itfs",
+]
 
 [[package]]
 name = "pzload"
