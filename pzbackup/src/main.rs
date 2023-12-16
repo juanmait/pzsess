@@ -1,7 +1,11 @@
 //! It creates recoverable backups of the entire saves folder.
-//! Subsequent runs of `pzbackup` won't override previous saves.
+//! Subsequent runs of `pzbackup` won't override previous saves but instead
+//! create a new backup.
 //!
 //! Previous backups can be recovered using the [pzload](../pzload/index.html) crate.
+
+use pzlib::constants::{OFFICIAL_SAVES_FOLDER, PZBACKUP_SAVES_FOLDER};
+use pzlib::itfs::{EntryToPath, PathReRoot, ReadDirRecursive};
 
 /// Creates a string representation of a timestamp
 /// in milliseconds since unix EPOCH. See [std::time::UNIX_EPOCH].
@@ -16,32 +20,35 @@ fn generate_timestamp_string() -> String {
 fn main() {
     let timestamp = generate_timestamp_string();
     println!("pzbackup: saving session into /{timestamp}/ ...");
-    let rdr = pzlib::rdr::read_dir_recursive(pzlib::constants::OFFICIAL_SESSIONS_FOLDER)
+
+    let rdr = ReadDirRecursive::new(OFFICIAL_SAVES_FOLDER)
         .expect("pzbackup: Error: Unable to read from the official saves folder.");
 
-    for direntry_result in rdr {
-        let absolute_src_path = direntry_result.unwrap().path();
-        let absolute_src_str = absolute_src_path.to_str().unwrap();
-        let relative_src_str =
-            &absolute_src_str[pzlib::constants::OFFICIAL_SESSIONS_FOLDER.len()..];
-        let relative_src_path: std::path::PathBuf = relative_src_str.into();
+    // the new root must include the generated timestamp
+    let replace_by = [PZBACKUP_SAVES_FOLDER, "/", timestamp.to_string().as_str()].concat();
 
-        let relative_src_dir_path = relative_src_path.parent().unwrap();
-        let relative_src_dir_str = relative_src_dir_path.to_str().unwrap();
-        let relative_src_file_name = relative_src_path.file_name().unwrap().to_str().unwrap();
+    let iter = PathReRoot {
+        inner_iter: EntryToPath(
+            // can't continue without the actual DirEntry item.
+            rdr.map(|r| r.expect("pzbackup: Error: Failed to unwrap entry. Backup stopped.")),
+        ),
+        strip_prefix: OFFICIAL_SAVES_FOLDER,
+        replace_by: replace_by.as_str(),
+    }
+    // if we use OFFICIAL_SAVES_FOLDER as `strip_prefix` while iterating
+    // over the content of OFFICIAL_SAVES_FOLDER this failure should never
+    // happen...
+    .map(|(original, result)| (original, result.expect("Invalid prefix or file path")));
 
-        let to_dir_all = [
-            pzlib::constants::PZLOAD_SESSIONS_FOLDER,
-            "/",
-            timestamp.as_str(),
-            relative_src_dir_str,
-        ];
+    for (original, updated) in iter {
+        // ensure that the destination folder exists
+        match updated.parent() {
+            Some(parent) => std::fs::create_dir_all(parent).unwrap(),
+            None => std::fs::create_dir_all(PZBACKUP_SAVES_FOLDER).unwrap(),
+        };
 
-        let to_dir_all_string = to_dir_all.concat();
-        let absolute_dest = [to_dir_all_string.as_str(), relative_src_file_name].join("/");
-
-        std::fs::create_dir_all(&to_dir_all_string).unwrap();
-        std::fs::copy(absolute_src_path, absolute_dest).unwrap();
+        // perform the backup for this file
+        std::fs::copy(original, updated).unwrap();
     }
 
     println!("pzbackup: finished ok");

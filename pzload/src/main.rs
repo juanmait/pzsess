@@ -30,25 +30,25 @@ fn main() {
     // Before proceeding to restore previous sessions we first backup the
     // current one in case something goes wrong with the restoration.
     println!("pzload: creating new temporary backup..");
-    if std::path::Path::new(pzlib::constants::OFFICIAL_SESSIONS_FOLDER).is_dir() {
+    if std::path::Path::new(pzlib::constants::OFFICIAL_SAVES_FOLDER).is_dir() {
         std::fs::rename(
-            pzlib::constants::OFFICIAL_SESSIONS_FOLDER,
+            pzlib::constants::OFFICIAL_SAVES_FOLDER,
             pzlib::constants::TEMP_SESS_BACKUP_FOLDER,
         )
         .unwrap();
     }
 
     println!("pzload: recovering session {}", args.n);
-    for (absolute_src, absolute_dest) in pzlib::rdr::read_dir_recursive(util::get_session_path(
+    for (absolute_src, absolute_dest) in pzlib::itfs::read_dir_recursive(util::get_session_path(
         args.n,
-        pzlib::constants::PZLOAD_SESSIONS_FOLDER,
+        pzlib::constants::PZBACKUP_SAVES_FOLDER,
     ))
     .unwrap()
     .map(|r| r.unwrap())
     .map(|e| e.path())
     .map(|absolute_from| {
         let relative_dest = absolute_from
-            .strip_prefix(pzlib::constants::PZLOAD_SESSIONS_FOLDER)
+            .strip_prefix(pzlib::constants::PZBACKUP_SAVES_FOLDER)
             .unwrap()
             .components()
             .skip(1)
@@ -57,7 +57,7 @@ fn main() {
     })
     .map(|(absolute_from, relative_dest)| {
         let absolute_to =
-            std::path::Path::new(pzlib::constants::OFFICIAL_SESSIONS_FOLDER).join(relative_dest);
+            std::path::Path::new(pzlib::constants::OFFICIAL_SAVES_FOLDER).join(relative_dest);
         (absolute_from, absolute_to)
     }) {
         let dir = absolute_dest.parent().unwrap();
