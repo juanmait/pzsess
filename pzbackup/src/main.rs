@@ -44,7 +44,8 @@ fn main() {
         // ensure that the destination folder exists
         match updated.parent() {
             Some(parent) => std::fs::create_dir_all(parent).unwrap(),
-            None => std::fs::create_dir_all(PZBACKUP_SAVES_FOLDER).unwrap(),
+            // this case should never happen (?
+            None => std::fs::create_dir_all(replace_by.as_str()).unwrap(),
         };
 
         // perform the backup for this file
