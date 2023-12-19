@@ -35,9 +35,8 @@ fn main() {
         strip_prefix: OFFICIAL_SAVES_FOLDER,
         replace_by: replace_by.as_str(),
     }
-    // if we use OFFICIAL_SAVES_FOLDER as `strip_prefix` while iterating
-    // over the content of OFFICIAL_SAVES_FOLDER this failure should never
-    // happen...
+    // as long as we use OFFICIAL_SAVES_FOLDER as `strip_prefix` while iterating
+    // over it this failure should never happen...
     .map(|(original, result)| (original, result.expect("Invalid prefix or file path")));
 
     for (original, updated) in iter {

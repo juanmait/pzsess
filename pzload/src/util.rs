@@ -6,12 +6,12 @@ where
     P: AsRef<std::path::Path>,
 {
     std::fs::read_dir(path)
-        .expect("Error trying to read_dir sessions folder.")
-        .map(|r| r.expect("Error unwrapping DirEntry while iterating over sessions folder."))
+        .expect("pzload: Error trying to read_dir sessions folder.")
+        .map(|r| r.expect("pzload: Error unwrapping DirEntry while iterating over sessions folder."))
         .filter(|d| {
             d.metadata()
                 .expect(
-                    "Error unwrapping metadata of DirEntry while iterating over sessions folder.",
+                    "pzload: Error unwrapping metadata of DirEntry while iterating over sessions folder.",
                 )
                 .is_dir()
         })
@@ -71,7 +71,7 @@ fn get_n_timestamp_index(n: i32, list_len: usize) -> usize {
     let n_absolute: usize = n
         .abs()
         .try_into()
-        .expect("Error at trying to cast the given `i32` into `usize`.");
+        .expect("pzload: Error at trying to cast the given `i32` into `usize`.");
 
     if n.is_negative() {
         return list_len - n_absolute;
@@ -82,7 +82,7 @@ fn get_n_timestamp_index(n: i32, list_len: usize) -> usize {
 
 /// Get the id of a save (timestamp) that correspond to the given `n`
 /// session number.
-/// 
+///
 /// This is mainly to support negative values for `n` so for example one
 /// can obtain the id of the last save using `n = -1` or the second to
 /// last id with `n = -2`.
@@ -95,12 +95,12 @@ where
     let index = get_n_timestamp_index(n, list_len);
     let timestamp = list.get(index).expect(
         format!(
-            "Index not found. No session was found in the given position {n} (computed index {index})"
+            "pzload: Index not found. No session was found in the given position {n} (computed index {index})"
         )
         .as_str()
     );
     println!(
-        "Recovering session {} with timestamp {} (total sessions {}).",
+        "pzload: Recovering session {} with timestamp {} (total sessions {}).",
         index + 1,
         timestamp,
         list_len
